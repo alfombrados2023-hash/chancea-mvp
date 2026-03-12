@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Bell, ChevronLeft } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 interface TopBarProps {
   title?: string;
@@ -23,6 +24,9 @@ export function TopBar({
   className,
 }: TopBarProps) {
   const router = useRouter();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const userPhoto = currentUser?.photos?.[0] || undefined;
+  const userName = currentUser?.name || "Tu";
 
   return (
     <header
@@ -41,7 +45,7 @@ export function TopBar({
           </button>
         ) : showAvatar ? (
           <button onClick={() => router.push("/profile")}>
-            <Avatar name="Tu" size="sm" />
+            <Avatar src={userPhoto} name={userName} size="sm" />
           </button>
         ) : null}
         {title ? (

@@ -19,6 +19,7 @@ import {
   Edit3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const MOCK_USER = {
   name: 'Sergio Martinez',
@@ -53,6 +54,10 @@ const MOCK_REPUTATION = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const userPhotos = currentUser?.photos ?? [];
+  const mainPhoto = userPhotos[0] || undefined;
+  const userName = currentUser?.name || MOCK_USER.name;
 
   return (
     <PageWrapper>
@@ -72,9 +77,9 @@ export default function ProfilePage() {
       {/* Avatar & name */}
       <div className="px-4 -mt-12 relative z-10">
         <div className="flex flex-col items-center text-center">
-          <Avatar name={MOCK_USER.name} size="xl" verified={MOCK_USER.verified} className="border-4 border-bg-primary" />
+          <Avatar src={mainPhoto} name={userName} size="xl" verified={MOCK_USER.verified} className="border-4 border-bg-primary" />
           <h1 className="text-xl font-black text-text-primary mt-3">
-            {MOCK_USER.name}
+            {userName}
           </h1>
           <p className="text-sm text-text-muted">
             {MOCK_USER.age} · {MOCK_USER.city}
@@ -92,6 +97,27 @@ export default function ProfilePage() {
           </Badge>
         </div>
       </div>
+
+      {/* Photo gallery */}
+      {userPhotos.length > 1 && (
+        <div className="px-4 mt-4">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+            {userPhotos.map((photo, i) => (
+              photo && (
+                <div
+                  key={i}
+                  className={cn(
+                    "h-16 w-16 rounded-xl overflow-hidden shrink-0 border-2",
+                    i === 0 ? "border-accent-primary" : "border-transparent"
+                  )}
+                >
+                  <img src={photo} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="px-4 space-y-6 pb-8 mt-6">
         {/* Stats row */}

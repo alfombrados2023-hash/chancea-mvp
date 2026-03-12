@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,43 @@ import {
   ChevronLeft,
   MapPin,
   Camera,
+  X,
+  ImagePlus,
 } from "lucide-react";
+
+function resizeImage(file: File, maxSize = 400): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round(height * (maxSize / width));
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round(width * (maxSize / height));
+            height = maxSize;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("No canvas context"));
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = e.target!.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 const INTERESTS = [
   { id: "coffee", name: "Cafe", emoji: "☕" },
@@ -80,7 +116,31 @@ export default function OnboardingPage() {
   const [city, setCity] = useState("Madrid");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [intention, setIntention] = useState("");
-  const [photos, setPhotos] = useState<number[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handlePhotoSelect = useCallback(async (index: number, file: File) => {
+    try {
+      const dataUrl = await resizeImage(file, 400);
+      setPhotos((prev) => {
+        const next = [...prev];
+        next[index] = dataUrl;
+        return next;
+      });
+    } catch {
+      // silently ignore invalid images
+    }
+  }, []);
+
+  const removePhoto = useCallback((index: number) => {
+    setPhotos((prev) => {
+      const next = [...prev];
+      next[index] = "";
+      // Compact: remove trailing empty slots
+      while (next.length > 0 && !next[next.length - 1]) next.pop();
+      return next;
+    });
+  }, []);
 
   const toggleInterest = (id: string) => {
     setSelectedInterests((prev) =>
@@ -99,7 +159,7 @@ export default function OnboardingPage() {
       case 3:
         return intention !== "";
       case 4:
-        return true;
+        return photos.some((p) => p && p.length > 0);
       default:
         return false;
     }
@@ -119,6 +179,7 @@ export default function OnboardingPage() {
             city,
             intention,
             interests: selectedInterests,
+            photos: photos.filter((p) => p && p.length > 0),
           },
         },
       })
@@ -334,33 +395,73 @@ export default function OnboardingPage() {
                 </p>
 
                 <div className="grid grid-cols-3 gap-2 mb-8">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <motion.button
-                      key={i}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() =>
-                        setPhotos((prev) =>
-                          prev.includes(i)
-                            ? prev.filter((p) => p !== i)
-                            : [...prev, i]
-                        )
-                      }
-                      className={`aspect-square rounded-xl border-2 border-dashed flex items-center justify-center transition-all ${
-                        photos.includes(i)
-                          ? "border-accent-primary bg-accent-primary/10"
-                          : "border-white/10 bg-bg-secondary"
-                      }`}
-                    >
-                      {photos.includes(i) ? (
-                        <div className="h-full w-full rounded-xl bg-gradient-to-br from-accent-primary/30 to-accent-secondary/30 flex items-center justify-center">
-                          <span className="text-2xl">✓</span>
-                        </div>
-                      ) : (
-                        <Camera className="h-6 w-6 text-text-muted" />
-                      )}
-                    </motion.button>
-                  ))}
+                  {[0, 1, 2, 3, 4, 5].map((i) => {
+                    const hasPhoto = photos[i] && photos[i].length > 0;
+                    return (
+                      <div key={i} className="relative">
+                        <input
+                          ref={(el) => { fileInputRefs.current[i] = el; }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoSelect(i, file);
+                            e.target.value = "";
+                          }}
+                        />
+                        <motion.button
+                          type="button"
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            if (!hasPhoto) fileInputRefs.current[i]?.click();
+                          }}
+                          className={`aspect-square w-full rounded-xl border-2 flex items-center justify-center transition-all overflow-hidden ${
+                            hasPhoto
+                              ? "border-accent-primary"
+                              : i === 0
+                              ? "border-dashed border-accent-primary/50 bg-accent-primary/5"
+                              : "border-dashed border-white/10 bg-bg-secondary"
+                          }`}
+                        >
+                          {hasPhoto ? (
+                            <img
+                              src={photos[i]}
+                              alt={`Foto ${i + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center gap-1">
+                              {i === 0 ? (
+                                <ImagePlus className="h-6 w-6 text-accent-primary/70" />
+                              ) : (
+                                <Camera className="h-5 w-5 text-text-muted" />
+                              )}
+                              {i === 0 && (
+                                <span className="text-[10px] font-medium text-accent-primary/70">
+                                  Principal
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </motion.button>
+                        {/* Remove button */}
+                        {hasPhoto && (
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(i)}
+                            className="absolute -top-1.5 -right-1.5 z-10 h-6 w-6 rounded-full bg-accent-danger flex items-center justify-center shadow-lg"
+                          >
+                            <X className="h-3.5 w-3.5 text-white" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+                <p className="text-xs text-text-muted -mt-5 mb-6">
+                  {photos.filter((p) => p && p.length > 0).length}/6 fotos · Minimo 1 requerida
+                </p>
 
                 <button
                   onClick={() => {}}
