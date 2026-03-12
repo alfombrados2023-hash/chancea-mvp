@@ -24,11 +24,11 @@ const FILTERS = [
 ];
 
 const MOCK_MARKERS = [
-  { id: 'p1', type: 'person' as const, name: 'Laura', score: 88, x: 22, y: 28, color: 'from-pink-500 to-rose-500', intention: 'Amistad', online: true },
-  { id: 'p2', type: 'person' as const, name: 'Miguel', score: 76, x: 48, y: 58, color: 'from-blue-500 to-cyan-500', intention: 'Networking', online: true },
-  { id: 'p3', type: 'person' as const, name: 'Sofia', score: 92, x: 68, y: 22, color: 'from-violet-500 to-purple-500', intention: 'Deporte', online: true },
-  { id: 'p4', type: 'person' as const, name: 'Diego', score: 65, x: 82, y: 62, color: 'from-emerald-500 to-green-500', intention: 'Quedadas', online: false },
-  { id: 'p5', type: 'person' as const, name: 'Elena', score: 84, x: 32, y: 72, color: 'from-amber-500 to-orange-500', intention: 'Cultural', online: true },
+  { id: 'p1', type: 'person' as const, name: 'Laura', score: 88, x: 22, y: 28, gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)', intention: 'Amistad', online: true },
+  { id: 'p2', type: 'person' as const, name: 'Miguel', score: 76, x: 48, y: 58, gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)', intention: 'Networking', online: true },
+  { id: 'p3', type: 'person' as const, name: 'Sofia', score: 92, x: 68, y: 22, gradient: 'linear-gradient(135deg, #8b5cf6, #a855f7)', intention: 'Deporte', online: true },
+  { id: 'p4', type: 'person' as const, name: 'Diego', score: 65, x: 82, y: 62, gradient: 'linear-gradient(135deg, #10b981, #22c55e)', intention: 'Quedadas', online: false },
+  { id: 'p5', type: 'person' as const, name: 'Elena', score: 84, x: 32, y: 72, gradient: 'linear-gradient(135deg, #f59e0b, #f97316)', intention: 'Cultural', online: true },
   { id: 'e1', type: 'event' as const, name: 'After Office', x: 55, y: 40, emoji: '🍻', participants: 4 },
   { id: 'e2', type: 'event' as const, name: 'Running Retiro', x: 20, y: 50, emoji: '🏃', participants: 6 },
   { id: 'e3', type: 'event' as const, name: 'Brunch', x: 70, y: 75, emoji: '🥐', participants: 3 },
@@ -122,15 +122,15 @@ export default function RadarPage() {
                     <motion.div
                       animate={{ scale: [1, 1.5, 1], opacity: [0.25, 0, 0.25] }}
                       transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.4 }}
-                      className={cn('absolute rounded-full bg-gradient-to-br', marker.color)}
-                      style={{ width: 48, height: 48, top: 0, left: '50%', transform: 'translateX(-50%)' }}
+                      className="absolute rounded-full"
+                      style={{ width: 48, height: 48, top: 0, left: '50%', transform: 'translateX(-50%)', background: marker.gradient }}
                     />
                   )}
                   {/* Avatar circle — large */}
-                  <div className={cn(
-                    'h-12 w-12 rounded-full bg-gradient-to-br flex items-center justify-center text-base font-bold text-white border-[2.5px] border-bg-primary shadow-xl relative z-10',
-                    marker.color
-                  )}>
+                  <div
+                    className="h-12 w-12 rounded-full flex items-center justify-center text-base font-bold text-white border-[2.5px] border-bg-primary shadow-xl relative z-10"
+                    style={{ background: marker.gradient }}
+                  >
                     {marker.name[0]}
                   </div>
                   {/* Online dot */}
