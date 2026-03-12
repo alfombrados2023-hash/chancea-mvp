@@ -69,6 +69,11 @@ body {
 }
 
 /* Animations */
+@keyframes fadeInScale {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
   50% { box-shadow: 0 0 0 12px rgba(255, 107, 53, 0); }

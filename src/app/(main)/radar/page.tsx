@@ -106,13 +106,16 @@ export default function RadarPage() {
 
           {/* Markers */}
           {MOCK_MARKERS.map((marker, i) => (
-            <motion.div
+            <div
               key={marker.id}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 + i * 0.06, type: 'spring', stiffness: 200 }}
-              className="absolute z-10 cursor-pointer"
-              style={{ left: `${marker.x}%`, top: `${marker.y}%`, transform: 'translate(-50%, -50%)' }}
+              className="absolute z-10 cursor-pointer animate-[fadeInScale_0.4s_ease-out_forwards]"
+              style={{
+                left: `${marker.x}%`,
+                top: `${marker.y}%`,
+                transform: 'translate(-50%, -50%)',
+                animationDelay: `${0.1 + i * 0.06}s`,
+                opacity: 0,
+              }}
               onClick={() => marker.type === 'person' ? router.push(`/profile/${marker.id}`) : router.push(`/missions/${marker.id}`)}
             >
               {marker.type === 'person' ? (
@@ -168,7 +171,7 @@ export default function RadarPage() {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           ))}
 
           {/* Map controls */}
